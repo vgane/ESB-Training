@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="customer_object_example" format="json">
+      <types:shape format="weave" example="examples/customer_example-1.json"><![CDATA[%dw 2.0
+type customer_object_example = {|
+  customerId: String, 
+  name: String, 
+  phoneNumber: String, 
+  emailId: String, 
+  SSN: String
+|} {"MetadataFormat": "json",
+"example": "{\"customerId\":\"1\",\"name\":\"Karnati Gopichand\",\"phoneNumber\":\"2035564654\",\"emailId\":\"gopik0173@gmail.com\",\"SSN\":\"123-45-6789\"}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="customer_xml_example" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="xczf" format="json">
+      <types:shape format="weave" example="examples/customer_example.json"><![CDATA[%dw 2.0
+type xczf = {|
+  customerId: String, 
+  lastName: String, 
+  firstName: String, 
+  phoneNumber: String, 
+  emailId: String, 
+  SSN: String
+|} {"MetadataFormat": "json",
+"example": "{\"customerId\":\"1\",\"lastName\":\"Karnati\",\"firstName\":\"Gopichand\",\"phoneNumber\":\"2035564654\",\"emailId\":\"gopik0173@gmail.com\",\"SSN\":\"123-45-6789\"}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#6d8ab84f-e2e7-4524-b008-470d9c2065b6">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="customer_object_example"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#88531195-1c92-44c4-b004-221ecb5697e9">
+    <types:processor-declaration/>
+  </types:enrichment>
+</types:mule>
