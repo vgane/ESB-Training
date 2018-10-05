@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="2391e712-8b00-45ff-93a3-3945298b6750" basePath="/api" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<flow name="test3Flow" doc:id="23c3d714-d997-44f1-b982-1f5c15faa36b" >
+		<http:listener doc:name="Listener" doc:id="80ccf5d5-2d7e-4a71-a396-8fc99093b806" config-ref="HTTP_Listener_config1" path="/hello"/>
+		<logger level="INFO" doc:name="Logger" doc:id="e369dc5a-6930-4178-80b6-5818b238d397" message="request received"/>
+		<set-variable value="#[message.attributes.queryParams.name ]" doc:name="Set Variable" doc:id="b240d688-972f-4ed7-9486-22768ddb7180" variableName="username"/>
+		<set-payload value='#[" Hello " ++ vars.username ++ " Your age is "  ++  attributes.headers.age]' doc:name="Set Payload" doc:id="ab6e824d-5c9b-4bc3-9f1e-34e1da5b5be0" />
+		<remove-variable doc:name="Remove Variable" doc:id="08750406-7079-4fa8-9cf7-2be55a03ecdc" variableName="username"/>
+		<logger level="INFO" doc:name="Logger" doc:id="b8ecf731-0e2f-49cc-99d4-1b4075e99d7d" />
+	</flow>
+</mule>
