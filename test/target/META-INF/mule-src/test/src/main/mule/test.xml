@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="testFlow" doc:id="0c9c47e4-23ad-4d4d-81f9-fd06bdd68abb" >
+		<http:listener doc:name="Listener" doc:id="c45a8c8d-dfb8-4777-9e82-25aacf7bc2cf" />
+		<logger level="INFO" doc:name="Logger" doc:id="b7dcc1f9-a17c-402b-80f5-a672a4518a05" />
+		<set-variable value="" doc:name="Set Variable" doc:id="947791a4-113c-4176-b085-580ba0485b0b" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="e2de8bf7-820d-4cde-bd76-ecba1c7a4e52" />
+		<remove-variable doc:name="Remove Variable" doc:id="158c51e0-b0d6-4c1e-acea-b1e7734da59c" />
+		<logger level="INFO" doc:name="Logger" doc:id="9d499b86-14c8-4fcb-b5c9-bbbcc2ea9a3c" />
+		<choice doc:name="Choice" doc:id="1cf4ed5a-ef17-40f8-975f-bacaf9a2117a" >
+			<when >
+				<logger level="INFO" doc:name="Logger" doc:id="1eb968b5-25c4-4ec7-a519-53513ecd2533" />
+				<set-payload value="#[payload]" doc:name="Set Payload" doc:id="a537d23e-dcf6-4ff9-9beb-2f738d1b3920" />
+			</when>
+			<when >
+				<logger level="INFO" doc:name="Logger" doc:id="d1f801fb-32c1-4538-ad2c-c7e4e7042e8c" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="1012d65d-f2c1-47d3-8c25-dc005a3d29e5" />
+				<set-payload value="#[payload]" doc:name="Set Payload" doc:id="c8b9e9ef-dd1d-495e-b30d-dd3f8342b55b" />
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
