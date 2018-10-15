@@ -1,0 +1,32 @@
+{
+  "configs": [
+    "http-proxy.xml"
+  ],
+  "redeploymentEnabled": true,
+  "name": "api-gateway-sample-proxies",
+  "minMuleVersion": "4.1.0",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedResources": [
+        "com/mulesoft/anypoint/gw/customer.raml",
+        "com/mulesoft/anypoint/gw/customer_example.raml",
+        "com/mulesoft/anypoint/gw/customers.raml",
+        "com/mulesoft/anypoint/gw/deleteCustomer.raml",
+        "com/mulesoft/anypoint/gw/deleteCustomer_example.raml",
+        "com/mulesoft/anypoint/gw/error.raml",
+        "com/mulesoft/anypoint/gw/error_example.raml",
+        "com/mulesoft/anypoint/gw/quintrix-customer-api.raml",
+        "com/mulesoft/anypoint/gw/updateCustomer.raml",
+        "com/mulesoft/anypoint/gw/updateCustomer_example.raml",
+        "config.properties"
+      ],
+      "exportedPackages": []
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}
