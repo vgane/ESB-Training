@@ -218,6 +218,14 @@ output application/json
     SSN: payload[0].customer_SSN
 }]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="outboundHeaders" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	noOfCustomer : sizeOf(payload)
+}]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
     </flow>
     <flow name="postCustomersFlow">
@@ -252,6 +260,14 @@ output application/json
              ++ " rows."
 }]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="outboundVariables" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	noOfCustomer : sizeOf(payload)
+}]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
 		
     </flow>
