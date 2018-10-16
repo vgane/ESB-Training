@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sockets="http://www.mulesoft.org/schema/mule/sockets"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/sockets http://www.mulesoft.org/schema/mule/sockets/current/mule-sockets.xsd">
+	
+	 <sub-flow name="sendEmail" doc:id="ec28c1cd-28c6-4c50-bf44-9c7831efc5f5" >
+		<parse-template doc:name="Parse Template" doc:id="9473d125-ef3c-44af-8274-76340c72ecf5" location="template.html" />
+		<email:send doc:name="Send" doc:id="4630d28f-32ba-479d-bf03-e63f335644d8" config-ref="Email_SMTP" fromAddress="vijaypriya.ganesan@gmail.com" subject="[Connectivity Error in Customer API]">
+			<email:to-addresses >
+				<email:to-address value="vgane002@ucr.edu" />
+			</email:to-addresses>
+		</email:send>
+	
+</sub-flow>
+	<error-handler name="globalErrorHandler" doc:id="331b0c98-4bbd-4dc3-bd97-59f483ac5e6e" >
+	 <on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="34aa002c-f164-4b98-9745-6b6672de0210" type="DB:CONNECTIVITY" >
+			<logger level="INFO" doc:name="Logger" doc:id="d18362ed-2a3d-4078-8082-97ffc85ac21c" message="in on error continue block"/>
+			<ee:transform doc:name="Transform Message" doc:id="e13f4275-cb99-4306-84ec-6d7a1e23dd62">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorType" : error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage" : error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="500" doc:name="httpStatus Set Variable" variableName="httpStatus" />
+			<async doc:name="Async" doc:id="5f619027-bd3c-4438-b571-3b3d82b552e5" >
+				<flow-ref doc:name="Flow Reference" doc:id="ab3e84fd-d1bd-46aa-ab6f-64a4f222393c" name="sendEmail" />
+			</async>
+		
+</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c895e037-d518-4b66-b19c-8dae9fc94379" type="DB:BAD_SQL_SYNTAX">
+				<logger level="INFO" doc:name="Logger" doc:id="2af284ef-e918-47c6-8b65-d0fa52fd3f69" message="in on error continue block" />
+				<ee:transform doc:name="Transform Message" doc:id="1261c394-60bd-47c0-951d-14e6a06db240">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorType" : error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage" : error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="400" doc:name="httpStatus Set Variable" doc:id="a104a85d-c96f-4413-9265-f022817c7f8b" variableName="httpStatus" />
+			<async doc:name="Async" doc:id="821a9799-2232-4ef2-8ff0-3f748fbac759" >
+				<flow-ref doc:name="Flow Reference" doc:id="f5a03b2e-c7a3-4456-bb71-1bc9ad099165" name="sendEmail"/>
+			</async>
+			
+</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="12ee100e-c8b7-4a74-a990-9892de0bebe0" type="ANY" when='#[error.description contains("wrong column name")]'>
+			<logger level="INFO" doc:name="Logger" doc:id="270bcaa4-f70a-405f-bb7a-ffe3ab63628d" message="in on error continue block"/>
+			<ee:transform doc:name="Transform Message" doc:id="0359ff45-f535-43ec-a066-ada183ce9fc8" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"errorType" : error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage" : error.description
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<set-variable value="400" doc:name="httpStatus Set Variable" doc:id="5520826e-9c12-4cad-9ea5-f6bc221e33ff" variableName="httpStatus Set Variable"/>
+			<async doc:name="Async" doc:id="4775a8af-d90b-4e1e-a498-7f306544fe97" >
+				<flow-ref doc:name="Flow Reference" doc:id="58e23d65-e258-4889-8423-234f8efd83a8" name="sendEmail" />
+			</async>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="30f60976-75b5-496e-b53a-f4ac0d5edec5" type="ANY">
+			<logger level="INFO" doc:name="Logger" doc:id="6e6be708-794a-4654-a6d0-6dddd9de86fb" message="in on error end of continue block"/>
+			<ee:transform doc:name="Transform Message" doc:id="75e6c0cf-6915-4016-8e27-ac1666dcc9bb" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"errorType" : error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage" : error.description
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<set-variable value="400" doc:name="httpStatus Set Variable" doc:id="7ae6a556-0401-4630-bebe-cea3ac11a837" variableName="httpStatus Set Variable"/>
+			<async doc:name="Async" doc:id="1b64cd4e-7601-4eab-972b-5c222ce0ba56" >
+				<flow-ref doc:name="Flow Reference" doc:id="41d56b33-2f94-4818-a0f2-93727fe34cdb" name="sendEmail"/>
+			</async>
+		</on-error-continue>
+		
+	
+
+</error-handler>
+	</mule>

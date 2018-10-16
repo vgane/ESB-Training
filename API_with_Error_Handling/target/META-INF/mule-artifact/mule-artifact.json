@@ -1,0 +1,40 @@
+{
+  "configs": [
+    "implementation-flows.xml",
+    "quintrix-customer-api.xml",
+    "errorhandlers.xml",
+    "common-config.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "com.mycompany:quintrix-customer-api:1.0.0-SNAPSHOT",
+  "minMuleVersion": "4.1.3",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "api/customer.raml",
+        "api/customers.raml",
+        "api/customer_example.raml",
+        "api/deleteCustomer.raml",
+        "api/deleteCustomer_example.raml",
+        "api/error.raml",
+        "api/error_example.raml",
+        "api/quintrix-customer-api.raml",
+        "api/updateCustomer.raml",
+        "api/updateCustomer_example.raml",
+        "customer-dev.yaml",
+        "customer-prod.yaml",
+        "dwl/getCustomersResponse.dwl",
+        "log4j2.xml",
+        "template.html"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}
