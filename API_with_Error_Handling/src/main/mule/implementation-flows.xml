@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	
+	    <flow name="deleteCustomerByIdFlow">
+       <logger level="INFO" doc:name="Logger" doc:id="0477feea-afd2-4c26-a252-da1ac5d3bce9" message="Delete one customer"/>
+		<db:delete doc:name="Delete" doc:id="59d2f5ad-6529-4edc-ba44-62da6dcf9619" config-ref="Database_Config">
+			<db:sql >DELETE FROM training.customer WHERE customer_id = :id;</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+    id: attributes.uriParams.customerId
+}]
+]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="038f0ec7-648a-423e-a3fa-3c86608a7905" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    message: "Deleted " ++ payload as String ++ " row(s)."
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="globalErrorHandler"/>
+    </flow>
+	<flow name="getCustomersFlow">
+		
+        <db:select doc:name="Select" doc:id="3081032d-5128-4906-80eb-4135147834bc" config-ref="Database_Config" queryTimeout="30" fetchSize="1000" maxRows="5000">
+			<db:sql >SELECT * FROM training.customer;</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="015c2eea-9126-45ce-a3ff-4b9cf7b65d1b">
+			<ee:message>
+				<ee:set-payload resource="dwl/getCustomersResponse.dwl" />
+			
+</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+if(sizeOf(payload) > 0) 200 else 204]]></ee:set-variable>
+				<ee:set-variable variableName="outboundHeaders" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	noOfCustomers : sizeOf(payload)
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<error-handler ref="globalErrorHandler"/>
+    </flow>
+	<flow name="getCustomerByIDFlow">
+        <logger level="INFO" doc:name="Logger" doc:id="f017cd6c-5ab9-4722-a7ca-53125bfc213d" message="Get one customer" />
+		<db:select doc:name="Select" doc:id="92289eed-ac7b-4455-8d3d-c2181379f396" config-ref="Database_Config" >
+			<db:sql >SELECT * FROM training.customer WHERE customer_ida = :id;</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+    id: attributes.uriParams.customerId
+}]
+]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="5e663288-07de-441c-8f17-4985377d64d8" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    customerId: payload[0].customer_id,
+    firstName: payload[0].customer_firstName,
+    lastName: payload[0].customer_lastName,
+    phoneNumber: payload[0].customer_phoneNumber,
+    emailId: payload[0].customer_emailId,
+    SSN: payload[0].customer_SSN
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="globalErrorHandler" />
+    </flow>
+   
+	<flow name="postCustomersFlow">
+       <logger level="INFO" doc:name="Logger" doc:id="036891e2-c4ca-4931-9829-825f6ab7e920" message="Inserting customers"/>
+		<db:bulk-insert doc:name="Bulk insert" doc:id="acffe7de-0eda-49ff-8188-80c67ab71096" config-ref="Database_Config">
+			<db:bulk-input-parameters ><![CDATA[#[payload map {
+    id: $.customerId,
+    lastName: $.lastName,
+    firstName: $.firstName,
+    phoneNumber: $.phoneNumber,
+    emailId: $.emailId,
+    ssn: $.SSN
+}]]]></db:bulk-input-parameters>
+			<db:sql >INSERT INTO training.customer ( customer_id, customer_lastName, customer_firstName,customer_phoneNumber,customer_emailId,customer_SSN )
+   VALUES
+   ( :id, :lastName, :firstName, :phoneNumber, :emailId, :ssn);
+</db:sql>
+		</db:bulk-insert>
+		<ee:transform doc:name="Transform Message" doc:id="6d91b762-b7e6-4e1c-ae49-d98b06fa4787" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    message: "Attempted " ++ sizeOf(payload) as String ++ " insert(s), "
+             ++ "inserted "
+             ++ (payload reduce ($$ + $) default 0) as String
+             ++ " rows."
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="globalErrorHandler"/>
+    </flow>
+    </mule>
