@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "artifactCoordinates": {
+    "groupId": "com.mulesoft.modules",
+    "artifactId": "mule-secure-configuration-property-module",
+    "version": "1.0.2",
+    "type": "jar",
+    "classifier": "mule-plugin"
+  },
+  "dependencies": [
+    {
+      "artifactCoordinates": {
+        "groupId": "org.bouncycastle",
+        "artifactId": "bcprov-ext-jdk15on",
+        "version": "1.59",
+        "type": "jar"
+      },
+      "uri": "repository/org/bouncycastle/bcprov-ext-jdk15on/1.59/bcprov-ext-jdk15on-1.59.jar"
+    }
+  ]
+}
