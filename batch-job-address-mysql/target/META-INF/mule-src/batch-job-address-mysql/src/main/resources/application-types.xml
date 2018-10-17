@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="csvAddress" format="csv">
+      <types:shape format="weave" example="examples/Address_small-1.csv"><![CDATA[%dw 2.0
+type csvAddress = Array<{|
+  customerId: String, 
+  address: String, 
+  address2: String, 
+  district: String, 
+  city: String, 
+  country: String, 
+  postalCode: String, 
+  phone: String
+|}> {"MetadataFormat": "csv"}
+
+]]></types:shape>
+      <types:properties>
+        <types:property name="quote" value="&quot;"/>
+        <types:property name="headerLineNumber" value="0"/>
+        <types:property name="header" value="true"/>
+        <types:property name="isQuotedString" value="true"/>
+        <types:property name="separator" value=","/>
+      </types:properties>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#5a1c34be-34be-4a72-9de7-29725c7e40e1">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="csvAddress"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#02c586fe-2121-4f45-a0ae-7bf4cfc6fd93">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="csvAddress"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

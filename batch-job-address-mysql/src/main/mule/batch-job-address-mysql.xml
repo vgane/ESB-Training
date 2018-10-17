@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="password" database="eduproject" />
+	</db:config>
+
+	<flow name="processAddressRecordsBatchJob" doc:id="22050d2e-51ef-4dc6-a44a-e1c7efdf175f" >
+		<file:listener doc:name="On New or Updated File" doc:id="2044aa5f-17e3-42cd-8788-06b0925ed3a9" directory="C:\Users\Viju\Documents\ESBtraining\newFileDirectory" autoDelete="true" outputMimeType="application/csv" moveToDirectory="C:\Users\Viju\Documents\ESBtraining\FileException">
+			<scheduling-strategy >
+				<fixed-frequency frequency="15" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</file:listener>
+		<ee:transform doc:name="Transform Message" doc:id="02c586fe-2121-4f45-a0ae-7bf4cfc6fd93" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<batch:job jobName="address-batch-uploadBatch_Job" doc:id="ca1cf5b0-5e81-4ad6-98e8-ac1fb7a9a17f" maxFailedRecords="1">
+			<batch:process-records >
+				<batch:step name="insertToDatabase" doc:id="e277a42e-62d9-4795-9792-f70eaa80cebe">
+					<ee:transform doc:name="Filter Records" doc:id="0150ed30-1986-458f-95c2-29b89039e052" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+var addr = payload.address splitBy " "
+---
+{
+	customerId : payload.customerId as Number,
+	address : addr[0],
+	address2 : addr[1] ++ " " ++ (addr[2] default ""),
+	city : payload.city,
+	country : payload.country,
+	postalCode : payload.postalCode,
+	phone : payload.phone
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="96f02059-86c4-4b48-a0f9-3ca018749444" size="10">
+						<db:bulk-insert doc:name="Bulk insert" doc:id="b0382c76-2e58-48da-bd67-b9fb982cc4e5" config-ref="Database_Config">
+							<db:sql >INSERT INTO eduproject.address_t( customerId, address, address2,city,postal_code,phone,country )
+   VALUES
+   ( customerId:,:address,:address2,:city,:postalCode,:phone,:country);</db:sql>
+						</db:bulk-insert>
+					</batch:aggregator>
+				</batch:step>
+				<batch:step name="handleFailureAddressRecords" doc:id="8ce21d35-767e-41c4-bbc1-b01ba8785249" acceptPolicy="ONLY_FAILURES">
+					<logger level="INFO" doc:name="Logger" doc:id="64e88979-bccb-47f3-84b9-eb767ee6f7a9" message="#[payload.customerId]"/>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<ee:transform doc:name="Transform Message" doc:id="fca5e71a-167b-4741-bb5b-473f6b85546a" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="6fda1260-dc94-49e9-aa0a-db96fdbfd6dc" message="#[payload]"/>
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>
