@@ -1,0 +1,70 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ms="http://quintrix.com/QuintrixAddressService" name="QuintrixAddressService" targetNamespace="http://quintrix.com/QuintrixAddressService">
+<wsdl:types>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://quintrix.com/QuintrixAddressService">
+<xsd:element name="GetAddressResponse">
+<xsd:complexType>
+<xsd:sequence>
+<xsd:element name="customerId" type="xsd:string"/>
+<xsd:element name="address1" type="xsd:string"/>
+<xsd:element name="address2" type="xsd:string"/>
+<xsd:element name="city" type="xsd:string"/>
+<xsd:element name="stateOrProvince" type="xsd:string"/>
+<xsd:element name="postalCode" type="xsd:string"/>
+<xsd:element name="country" type="xsd:string"/>
+</xsd:sequence>
+</xsd:complexType>
+</xsd:element>
+<xsd:element name="GetAddressRequest">
+<xsd:complexType>
+<xsd:all>
+<xsd:element name="customerId" type="xsd:string"/>
+</xsd:all>
+</xsd:complexType>
+</xsd:element>
+<xsd:element name="AddressFault">
+<xsd:complexType>
+<xsd:sequence>
+<xsd:element name="errorrStuff" type="xsd:integer"/>
+</xsd:sequence>
+</xsd:complexType>
+</xsd:element>
+</xsd:schema>
+</wsdl:types>
+<wsdl:message name="GetAddressRequest">
+<wsdl:part element="ms:GetAddressRequest" name="body"> </wsdl:part>
+</wsdl:message>
+<wsdl:message name="GetAddressResponse">
+<wsdl:part element="ms:GetAddressResponse" name="body"> </wsdl:part>
+</wsdl:message>
+<wsdl:message name="AddressFault">
+<wsdl:part element="ms:AddressFault" name="fault"> </wsdl:part>
+</wsdl:message>
+<wsdl:portType name="AddressServicePortType">
+<wsdl:operation name="getCustomerAddress">
+<wsdl:input message="ms:GetAddressRequest"> </wsdl:input>
+<wsdl:output message="ms:GetAddressResponse"> </wsdl:output>
+<wsdl:fault message="ms:AddressFault" name="AddressFault"> </wsdl:fault>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="AddressServiceSoapBinding" type="ms:AddressServicePortType">
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<wsdl:operation name="getCustomerAddress">
+<soap:operation soapAction="http://quintrix.com/QuintrixAddressService/getCustomerAddress"/>
+<wsdl:input>
+<soap:body namespace="http://quintrix.com/QuintrixAddressService" use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body namespace="http://quintrix.com/QuintrixAddressService" use="literal"/>
+</wsdl:output>
+<wsdl:fault name="AddressFault">
+<soap:body namespace="http://quintrix.com/QuintrixAddressService" use="literal"/>
+</wsdl:fault>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="QuintrixAddressService">
+<wsdl:documentation/>
+<wsdl:port binding="ms:AddressServiceSoapBinding" name="AddressServicePort">
+<soap:address location="http://address-service.us-e2.cloudhub.io/QuintrixAddressService"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>
