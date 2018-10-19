@@ -8,5 +8,9 @@ sqldb-Using Mulesoft to to send REST request to DBSelect, Insert Update, Update 
 sqldb2-using ? in message weaver to replace to retrieve all db values and use forEach Component to iterate through the each object
 
 customer api deployed on cloudhub-   http://quintrix-api.us-e2.cloudhub.io 
+
+
 proxy-customer api deployed on cloudhub-   http://quintrix-customers-proxy-api.us-e2.cloudhub.io
+
+
 object-store deployed on cloudhub-    http://object-store3.us-e2.cloudhub.io
