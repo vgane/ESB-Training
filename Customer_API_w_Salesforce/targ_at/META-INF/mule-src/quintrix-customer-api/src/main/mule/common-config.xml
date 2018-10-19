@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+		
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="d1094f3f-4ecd-4235-9d96-e189182ec982" >
+		<db:my-sql-connection host="${secure::db.host}" port="${secure::db.port}" user="${secure::db.user}" password="${secure::db.password}" database="${secure::db.database}" />
+	</db:config>
+	
+
+<!-- 	<configuration-properties doc:name="Configuration properties" doc:id="298d231b-3ded-49d0-9649-8828a38423d5" file="customer-${env}.yaml" /> -->
+	
+<!-- 	<api-gateway:autodiscovery apiId="15550772" doc:name="API Autodiscovery" doc:id="aa416391-7793-4e8c-92f5-78fc48c5246e" flowRef="quintrix-customer-api-main" /> -->
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="1cdacda8-3877-49b2-9afd-46a9aa384ef5" file="customer-${env}.yaml" key="${key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	
+	  <http:listener-config name="quintrix-customer-api-httpListenerConfig" basePath="/api">
+        <http:listener-connection host="${secure::http.host}" port="${secure::http.port}" />
+    </http:listener-config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="e6dd079c-1923-48b3-879e-33e8d6cc5f07" >
+		<email:smtps-connection host="smtp.gmail.com" user="vijaypriya.ganesan@gmail.com" password="Nalini10$" >
+		<tls:context>
+            <tls:trust-store insecure="true"/>
+        </tls:context>
+        </email:smtps-connection>
+	</email:smtp-config>
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="24f39e3c-6cf1-4329-a39e-0c47815a68c1" >
+		<wsc:connection wsdlLocation="AddressService.wsdl" service="QuintrixAddressService" port="AddressServicePort" address="http://address-service.us-e2.cloudhub.io/QuintrixAddressService" />
+	</wsc:config>
+	<global-property doc:name="Global Property" doc:id="14387c52-19b2-451c-ac17-448a11e6a6f2" name="env" value="dev" />
+	<global-property doc:name="Global Property" doc:id="59375515-b938-4037-bb61-343ee2f6bea9" name="key" value="happy12345" />
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="cfa645a8-d59a-4be5-b7b4-d748e44c0832" >
+		<salesforce:basic-connection username="karnatigopichand_developer@gmail.com" password="India@2013" securityToken="2pUirthgYhwvlR6GrbwSUdm3"/>
+	</salesforce:sfdc-config>
+
+	
+	
+
+</mule>

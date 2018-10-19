@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	
+	    <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="22571398-7007-49cc-91f8-42276a1e6ff3">
+		<http:request-connection host="country-api.us-e2.cloudhub.io" port="80" />
+	</http:request-config>
+	<ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy" doc:id="6e1f2b49-6878-48d1-af4b-dd98da74d220" >
+		<os:private-object-store maxEntries="10" entryTtl="30" expirationInterval="30" config-ref="ObjectStore_Config" alias="store"/>
+	</ee:object-store-caching-strategy>
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="6a26cf95-b9c5-4987-9102-e04b8128a08b" />
+	<flow name="deleteCustomerByIdFlow">
+       <logger level="INFO" doc:name="Logger" doc:id="114bc524-cd4b-4287-aee7-2cd86b6b220a" message="Delete one customer"/>
+		<db:delete doc:name="Delete" doc:id="41020d18-712a-455d-a362-e965d02151b8" config-ref="Database_Config">
+			<db:sql >DELETE FROM training.customer WHERE customer_id = :id;</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+    id: attributes.uriParams.customerId
+}]
+]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="fa075b51-c7f5-404d-b39f-bd05845b9e82" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    message: "Deleted " ++ payload as String ++ " row(s)."
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="globalErrorHandler"/>
+    </flow>
+	<flow name="getCustomersFlow">
+		
+        <scatter-gather doc:name="Scatter-Gather" doc:id="6e89e22d-6737-4a36-90c9-e016cab8ba72" >
+			<route >
+				<salesforce:query-all doc:name="Query all" doc:id="197f5e65-4187-4aef-963d-6e44d27c14fd" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query>SELECT id, LastName,FirstName, Phone, Email FROM Contact</salesforce:salesforce-query>
+		</salesforce:query-all>
+				<ee:transform doc:name="Transform Message" doc:id="54622f4c-d385-4d85-9c35-6718141ec8db">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	customerId: payload01.Id default "",
+	name: (payload01.LastName default "") ++ (payload01.FirstName default ""),
+	phoneNumber: payload01.Phone default "",
+	emailId: payload01.Email default ""
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route >
+				<db:select doc:name="Select" doc:id="66410514-3064-4358-905a-71adeb6b0ad7" config-ref="Database_Config" queryTimeout="30" fetchSize="1000" maxRows="5000">
+			<db:sql>SELECT * FROM training.customer;</db:sql>
+		</db:select>
+				<ee:transform doc:name="Transform Message" doc:id="5778e824-38bb-4e7f-8512-602dca14a9ff">
+			<ee:message>
+				<ee:set-payload resource="dwl/getCustomersResponse.dwl" />
+			
+</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="httpStatus"><![CDATA[%dw 2.0
+output application/java
+---
+if(sizeOf(payload) > 0) 200 else 204]]></ee:set-variable>
+				<ee:set-variable variableName="outboundHeaders"><![CDATA[%dw 2.0
+output application/java
+---
+{
+	noOfCustomers : sizeOf(payload)
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="3210d2f0-9468-4683-b624-ff5a0dc90a3e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload."0".payload ++ payload."1".payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="0b86850b-aaa8-4e77-8395-7649886451f2" />
+		<error-handler ref="globalErrorHandler"/>
+    </flow>
+	<flow name="countryRestAPIFlow" doc:id="cee7780d-3f30-4b3b-92d0-5ae67aa0fab4" >
+		<ee:cache doc:name="Cache" doc:id="e3578df0-75c4-4478-9f60-627ebe917d7f" cachingStrategy-ref="Caching_Strategy">
+			<logger level="INFO" doc:name="Logger" doc:id="af6182a6-7281-4f39-94e6-d6acaf12ed59" message="before http request" />
+			<http:request method="GET" doc:name="Request" doc:id="8af18169-413e-4176-9ede-709dd983d51c" config-ref="HTTP_Request_configuration" path="/country" >
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"code" : "US"
+}]]]></http:query-params>
+			</http:request>
+			<logger level="INFO" doc:name="Logger" doc:id="f6b018f8-4f25-40ea-a020-bbe752426aa7" message="after http request" />
+		</ee:cache>
+	</flow>
+	<flow name="getCustomerByIDFlow">
+        <logger level="INFO" doc:name="Logger" doc:id="9737e090-f4b7-4080-9eaf-1123b5f8a5dc" message="Get one customer" />
+		<set-variable value="#[attributes.uriParams.customerId]" doc:name="customerId Variable" doc:id="757fbc52-4ad0-4bf1-88cc-37b6623803fa" variableName="customerId"/>
+		<db:select doc:name="Select" doc:id="28282f07-5bed-4dfc-8da4-2f8bde263253" config-ref="Database_Config" target="dbResponse">
+			<db:sql >SELECT * FROM training.customer WHERE customer_id = :id;</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+    id: vars.customerId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="71decf5f-fc97-4b16-bbfb-e3f63f7f1e0c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://quintrix.com/QuintrixAddressService
+---
+{
+	ns0#GetAddressRequest: {
+		customerId: vars.customerId
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume operation="getCustomerAddress" doc:name="Consume" doc:id="f9aa7428-131d-4b15-a60a-fc6462b94037" config-ref="Web_Service_Consumer_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="a9ac4ab0-240a-4f0c-90b3-46788854d2ba" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://quintrix.com/QuintrixAddressService
+var countryCodes = lookup("countryRestAPIFlow","samplePayload")
+---
+{
+	customerId: vars.dbResponse[0].customer_id,
+	firstName: vars.dbResponse[0].customer_firstName,
+	lastName: vars.dbResponse[0].customer_lastName,
+	phoneNumber: vars.dbResponse[0].customer_phoneNumber,
+	emailId: vars.dbResponse[0].customer_emailId,
+	SSN: vars.dbResponse[0].customer_SSN,
+	address : {
+		address1 : payload.body.ns0#GetAddressResponse.address1 default "",
+		address2 : payload.body.ns0#GetAddressResponse.address2 default "",
+		city : payload.body.ns0#GetAddressResponse.city default "",
+		countryCode : (countryCodes filter ($.countryName contains payload.body.ns0#GetAddressResponse.country default ""))[0].countryCode default "CA",
+		postalCode : payload.body.ns0#GetAddressResponse.postalCode default "",
+	}
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="92cda6a0-d043-40c7-8cdf-db373b18e8a4" message="end"/>
+		<error-handler ref="globalErrorHandler" />
+    </flow>
+   
+	<flow name="postCustomersFlow">
+       <logger level="INFO" doc:name="Logger" doc:id="7ab46fe5-95e8-416a-a35b-50224f64ad4f" message="Inserting customers"/>
+		<db:bulk-insert doc:name="Bulk insert" doc:id="c4c3e658-b279-4c26-aa2d-1f884ce45b9b" config-ref="Database_Config">
+			<db:bulk-input-parameters ><![CDATA[#[payload map {
+    id: $.customerId,
+    lastName: $.lastName,
+    firstName: $.firstName,
+    phoneNumber: $.phoneNumber,
+    emailId: $.emailId,
+    ssn: $.SSN
+}]]]></db:bulk-input-parameters>
+			<db:sql >INSERT INTO training.customer ( customer_id, customer_lastName, customer_firstName,customer_phoneNumber,customer_emailId,customer_SSN )
+   VALUES
+   ( :id, :lastName, :firstName, :phoneNumber, :emailId, :ssn);
+</db:sql>
+		</db:bulk-insert>
+		<ee:transform doc:name="Transform Message" doc:id="d6e01146-4237-446c-b988-73708afaba99" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    message: "Attempted " ++ sizeOf(payload) as String ++ " insert(s), "
+             ++ "inserted "
+             ++ (payload reduce ($$ + $) default 0) as String
+             ++ " rows."
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="globalErrorHandler"/>
+    </flow>
+    </mule>

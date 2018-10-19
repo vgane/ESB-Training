@@ -1,0 +1,110 @@
+#%RAML 1.0
+title: Quintrix Customer API
+description: Executes CRUD Operations on Customer Table
+version: v1
+protocols: 
+  - HTTPS 
+  - HTTP
+mediaType: application/json
+baseUri: https://mocksvc.mulesoft.com/mocks/1ffb9232-0e45-48a7-b2bf-2205656db311/api/ # baseUri: http://quintrix-customer.cloudhub.io/api/
+types: 
+  customer : !include customer.raml
+  deleteCustomer: !include deleteCustomer.raml
+  updateCustomer: !include updateCustomer.raml
+  error: !include error.raml
+/customers:
+  post:
+    responses: 
+        200:
+          body: 
+            application/json:
+              schema: updateCustomer
+              example: !include updateCustomer_example.raml
+        204:
+          description: where no customers are avaliable
+          body: 
+            schema: nil
+        400:
+          description: 
+          body: 
+            application/json:
+              schema: error
+              example: !include error_example.raml
+  get:
+    description: Retrieves ll customer records
+    queryParameters: 
+      country:
+        type: string
+        required: false
+        enum: 
+          - US
+          - CA
+      phoneNumber: 
+        type: string
+        required: false
+        minLength: 9
+        maxLength: 9
+      SSN: 
+        type: string
+        required: false
+        minLength: 9
+        maxLength: 9
+    responses: 
+      200:
+        body: 
+          application/json:
+            type: array
+            items: 
+              type : customer
+            example: !include customers.raml
+      204:
+        description: When No customers are available
+        body: 
+          example: []
+      400:
+        description: 
+        body: 
+          application/json:
+            schema: error
+            example: !include error_example.raml
+  /{customerId}:
+    uriParameters: 
+      customerId: 
+        required: true
+        type: integer
+    delete:
+      responses: 
+        200:
+          body: 
+            application/json:
+              schema: deleteCustomer
+              example: !include deleteCustomer_example.raml
+        204:
+          description: where no customers are avaliable
+          body: 
+            schema: nil
+        400:
+          description: 
+          body: 
+            application/json:
+              example: !include error_example.raml
+              schema: error
+    get:
+      responses: 
+        200:
+          body: 
+            application/json:
+              schema: customer
+              example: !include customer_example.raml
+            
+        204:
+          description: where no customers are avaliable
+          body: 
+            schema: nil
+        400:
+          description: 
+          body: 
+            application/json:
+              schema: error
+              example: !include error_example.raml
+
