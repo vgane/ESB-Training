@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="eea459d5-f5d8-4d90-9db9-306ae754549a" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="d6711bb4-ea07-4da1-b4d3-8daede51dfec" maxEntries="10" entryTtl="3" persistent="true" expirationInterval="1" expirationIntervalUnit="MINUTES"  entryTtlUnit="MINUTES"/>
+	<flow name="object-storeFlow" doc:id="03cfaf8c-913a-45d9-9b95-c1095e32ab57" >
+		<http:listener doc:name="Listener" doc:id="40979a99-a1c2-4fb2-a9c7-f7428f7d5670" config-ref="HTTP_Listener_config" path="/store"/>
+		<logger level="INFO" doc:name="Logger" doc:id="d502371f-412a-4825-b337-8c72570fdd12" />
+		<os:store doc:name="Store" doc:id="62e6a9e0-9752-457b-bfb2-8e235846cffa" key="#[attributes.headers.key]" objectStore="Object_store">
+			<os:value ><![CDATA[#[attributes.headers.value]]]></os:value>
+		</os:store>
+		<logger level="INFO" doc:name="Logger" doc:id="2342ed12-1b4b-465d-a9c1-6403fdbf0a1b" message="#[payload]"/>
+	</flow>
+	<flow name="object-storeFlow1" doc:id="7c27d62d-9a89-4b50-bd06-0c63f45a7809" >
+		<http:listener doc:name="Listener" doc:id="cbdf3487-ea57-4911-9bcd-1f6d803b45aa" config-ref="HTTP_Listener_config" path="/retrieveAll"/>
+		<os:retrieve-all-keys doc:name="Retrieve all keys" doc:id="8becf35e-73b3-42e9-a3b9-3369c03dd098" />
+		<logger level="INFO" doc:name="Logger" doc:id="20ad389b-1cf6-4441-b6c1-ad6162e98a61" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="8be0181e-becc-42a7-87e8-d25c4ccd3a0c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
