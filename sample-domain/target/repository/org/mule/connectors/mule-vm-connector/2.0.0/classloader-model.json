@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "artifactCoordinates": {
+    "groupId": "org.mule.connectors",
+    "artifactId": "mule-vm-connector",
+    "version": "2.0.0",
+    "type": "jar",
+    "classifier": "mule-plugin"
+  },
+  "dependencies": []
+}

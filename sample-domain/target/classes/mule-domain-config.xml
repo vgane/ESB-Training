@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain:mule-domain
+        xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+        xmlns:http="http://www.mulesoft.org/schema/mule/http"
+        xmlns="http://www.mulesoft.org/schema/mule/core"
+        xmlns:domain="http://www.mulesoft.org/schema/mule/ee/domain"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+               http://www.mulesoft.org/schema/mule/ee/domain http://www.mulesoft.org/schema/mule/ee/domain/current/mule-domain-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+	<http:listener-config name="Global_HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="7cf8b7bb-419d-43b3-9f5c-d5c42b1ad94e" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<vm:config name="VM_Config" doc:name="VM Config" doc:id="0f3bdba5-d1a7-4c28-aa92-c46165d0e7eb" >
+		<vm:queues >
+			<vm:queue queueName="errorQueue" maxOutstandingMessages="100" />
+			<vm:queue queueName="alertQueue" maxOutstandingMessages="20" />
+		</vm:queues>
+	</vm:config>
+
+
+    <!-- configure here resource to be shared within the domain -->
+
+</domain:mule-domain>
